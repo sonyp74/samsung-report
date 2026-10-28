@@ -6,8 +6,8 @@ from bs4 import BeautifulSoup
 # 설정 정보
 TELEGRAM_TOKEN = "9077507634:AAG8zS8EDOniS8-iP4pRK99XmIrnAmVpj5I"
 CHAT_ID = "8955893121"
-AVG_PRICE_A = "320,638원"
-AVG_PRICE_B = "279,399원"
+AVG_PRICE_A = 320638
+AVG_PRICE_B = 279399
 
 def send_telegram(msg):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -20,31 +20,29 @@ def send_telegram(msg):
 def main():
     today_str = datetime.datetime.now().strftime("%Y년 %m월 %d일")
     
-    # 네이버 증권 크롤링
+    # 네이버 증권 크롤링 (현재가 추출)
     try:
         url = "https://finance.naver.com/item/main.naver?code=005930"
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         html = urllib.request.urlopen(req).read().decode('euc-kr', 'ignore')
         soup = BeautifulSoup(html, 'html.parser')
-        price = soup.select_one('.no_today .blind').text
+        price_str = soup.select_one('.no_today .blind').text.replace(',', '')
+        current_price = int(price_str)
         diff = soup.select_one('.no_exday .blind').text
     except Exception:
-        price = "242,000"
+        current_price = 242000
         diff = "0"
 
     # 텔레그램 알림 메시지
     telegram_text = (
         f"📊 *[삼성전자 데일리 리포트]* ({today_str})\n\n"
-        f"💰 *현재가:* {price}원 (전일비: {diff})\n"
-        f"📦 *보유:* 168주 (약 4,000만 원)\n"
-        f"  • 계좌1 평단: *{AVG_PRICE_A}*\n"
-        f"  • 계좌2 평단: *{AVG_PRICE_B}*\n\n"
-        f"🎯 *오늘의 판단:* 실적 발표 앞둔 관찰 자리\n"
-        f"🌐 [대시보드 보기](https://sonyp74.github.io/samsung-report/)"
+        f"💰 *현재가:* {current_price:,}원 (전일비: {diff})\n"
+        f"📦 *계좌 관리 리포트 갱신 완료*\n"
+        f"🌐 [대시보드에서 계좌별 손익 확인하기](https://sonyp74.github.io/samsung-report/)"
     )
     send_telegram(telegram_text)
     
-    # 웹 대시보드 (두 계좌 평단가가 명시된 HTML)
+    # 웹 대시보드 HTML (인터랙티브 계좌 입력 및 실시간 손익/조언 반영 기능 포함)
     html_content = f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -58,6 +56,7 @@ def main():
             --primary: #0a58ca;
             --secondary: #495057;
             --accent-up: #d93025;
+            --accent-down: #1a73e8;
             --text-main: #212529;
             --border-color: #e9ecef;
         }}
@@ -67,18 +66,60 @@ def main():
         header h1 {{ margin: 0 0 8px 0; font-size: 24px; }}
         header .date-info {{ font-size: 14px; opacity: 0.85; }}
         
-        .portfolio-summary {{
+        /* 계좌 입력 카드 스타일 */
+        .account-container {{
             background: #e7f1ff;
             border: 1px solid #b6d4fe;
             border-radius: 12px;
-            padding: 16px 20px;
+            padding: 20px;
             margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
         }}
-        .portfolio-item {{ font-size: 14px; color: #084298; }}
-        .portfolio-item strong {{ font-size: 16px; font-weight: bold; color: #052c65; display: block; margin-top: 2px; }}
+        .account-title {{ font-size: 16px; font-weight: bold; color: #084298; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }}
+        .account-row {{
+            display: grid;
+            grid-template-columns: 1fr 1fr 100px;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 10px;
+            background: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #cfe2ff;
+        }}
+        .input-group label {{ font-size: 12px; color: #555; display: block; margin-bottom: 4px; }}
+        .input-group input {{
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }}
+        .calc-btn {{
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            height: 100%;
+        }}
+        .calc-btn:hover {{ background-color: #084298; }}
+        
+        .account-result {{
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #b6d4fe;
+            font-size: 14px;
+            color: #052c65;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }}
+        .profit-plus {{ color: var(--accent-up); font-weight: bold; }}
+        .profit-minus {{ color: var(--accent-down); font-weight: bold; }}
 
         .summary-cards {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }}
         .card {{ background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }}
@@ -96,6 +137,10 @@ def main():
         .conclusion-box {{ border-left: 5px solid var(--primary); font-size: 15px; font-weight: 500; }}
         .action-banner {{ background: linear-gradient(135deg, #212529, #343a40); color: #fff; padding: 20px; border-radius: 12px; text-align: center; font-size: 18px; font-weight: bold; margin-top: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }}
         .action-banner span {{ color: #ffda6a; }}
+        .badge {{ display: inline-block; padding: 4px 8px; font-size: 12px; font-weight: 600; border-radius: 4px; margin-right: 6px; }}
+        .badge-warning {{ background-color: #fff3cd; color: #856404; }}
+        .badge-info {{ background-color: #cce5ff; color: #004085; }}
+        .badge-danger {{ background-color: #f8d7da; color: #721c24; }}
         footer {{ text-align: center; padding: 24px 0; color: var(--secondary); font-size: 12px; }}
     </style>
 </head>
@@ -106,12 +151,43 @@ def main():
             <div class="date-info">업데이트: {today_str} 기준</div>
         </header>
 
-        <!-- 두 계좌 평단가 반영 영역 -->
-        <div class="portfolio-summary">
-            <div class="portfolio-item">보유 수량: <strong>150주 (약 4,000만원)</strong></div>
-            <div class="portfolio-item">계좌 1 평단가: <strong>{AVG_PRICE_A}</strong></div>
-            <div class="portfolio-item">계좌 2 평단가: <strong>{AVG_PRICE_B}</strong></div>
-            <div class="portfolio-item">현재 상태: <strong style="color:var(--primary);">계좌별 분할 관리 중</strong></div>
+        <!-- 계좌별 입력 및 실시간 손익 계산 영역 -->
+        <div class="account-container">
+            <div class="account-title">
+                <span>💼 보유 계좌별 매입가 및 수량 설정</span>
+                <span style="font-size: 13px; font-weight: normal; color: #0a58ca;">현재가: <strong id="curr-price-display">{current_price:,}</strong>원</span>
+            </div>
+            
+            <!-- 계좌 1 -->
+            <div class="account-row">
+                <div class="input-group">
+                    <label>계좌 1 매입가 (원)</label>
+                    <input type="number" id="price1" value="{AVG_PRICE_A}">
+                </div>
+                <div class="input-group">
+                    <label>계좌 1 보유수량 (주)</label>
+                    <input type="number" id="qty1" value="84">
+                </div>
+                <button class="calc-btn" onclick="calculate()">반영</button>
+            </div>
+
+            <!-- 계좌 2 -->
+            <div class="account-row">
+                <div class="input-group">
+                    <label>계좌 2 매입가 (원)</label>
+                    <input type="number" id="price2" value="{AVG_PRICE_B}">
+                </div>
+                <div class="input-group">
+                    <label>계좌 2 보유수량 (주)</label>
+                    <input type="number" id="qty2" value="84">
+                </div>
+                <button class="calc-btn" onclick="calculate()">반영</button>
+            </div>
+
+            <div class="account-result" id="result-box">
+                <div>총 보유: <strong id="total-qty">168주</strong> | 총 투자금: <strong id="total-invest">-</strong>원</div>
+                <div>총 평가손익: <span id="total-profit">-</span></div>
+            </div>
         </div>
 
         <div class="summary-cards">
@@ -122,7 +198,7 @@ def main():
             </div>
             <div class="card">
                 <div class="card-title">오늘 종가</div>
-                <div class="card-value">{price}원</div>
+                <div class="card-value">{current_price:,}원</div>
                 <div class="card-change">전일 대비: {diff}</div>
             </div>
             <div class="card">
@@ -132,16 +208,16 @@ def main():
             </div>
         </div>
 
-        <div class="section-title">1. 오늘의 결론</div>
+        <div class="section-title">1. 오늘의 결론 및 맞춤 조언</div>
         <div class="content-box conclusion-box">
             <ul>
                 <li><strong>투자 가설 유지:</strong> HBM3E 공급 가시성 및 메모리 업황 회복 기대감으로 중장기 모멘텀 유효.</li>
-                <li><strong>계좌별 전략 관리:</strong> 계좌 1({AVG_PRICE_A}) 및 계좌 2({AVG_PRICE_B})의 평단 차이를 고려한 구간별 대응.</li>
+                <li><strong id="advice-status-text">계좌별 상태 분석:</strong> <span id="dynamic-advice">값을 입력하고 [반영] 버튼을 누르면 평단가 기준 맞춤 조언이 생성됩니다.</span></li>
                 <li><strong>실적 이벤트 대기:</strong> 컨퍼런스콜 발표 전까지 무리한 추격 매수보다는 보유 관망 전략이 유효.</li>
             </ul>
         </div>
 
-        <div class="section-title">2. 오늘 뭐가 바뀌었나</div>
+        <div class="section-title">2. 오늘 뭐가 바뀌었나 (수급/기술적 위치)</div>
         <div class="content-box">
             <ul>
                 <li><strong>투자 가설:</strong> HBM 턴어라운드 모멘텀 유효, 단기 변동성에도 중장기 재평가 라인 유지.</li>
@@ -152,18 +228,22 @@ def main():
             </ul>
         </div>
 
-        <div class="section-title">3. 뉴스 & 촉매</div>
+        <div class="section-title">3. 뉴스 & 촉매 (주가 직접 영향)</div>
         <div class="content-box">
             <ul>
-                <li><strong>3분기 실적 컨퍼런스콜:</strong> HBM3E 퀄테스트 진행 상황 및 4분기/내년 가이던스 발표 집중.</li>
+                <li><span class="badge badge-info">실적/IR</span> <strong>3분기 실적 컨퍼런스콜:</strong> HBM3E 퀄테스트 진행 상황 및 4분기/내년 가이던스 발표가 핵심 촉매.</li>
+                <li><span class="badge badge-warning">미국 정책</span> <strong>미국 반도체 정책 변수:</strong> 보조금 지급 일정 및 대중 규제 여파 모니터링.</li>
+                <li><span class="badge badge-danger">지정학적</span> <strong>대외 불확실성:</strong> 매크로 환경 및 유가 변동성에 따른 전방 IT 수요 점검.</li>
             </ul>
         </div>
 
         <div class="section-title">4. If-Then 액션 플랜</div>
         <div class="content-box">
             <ul>
-                <li><strong>IF 주요 저항선 돌파 시:</strong> 상승 추세 강화로 판단, 홀딩 유지하며 목표가 상향.</li>
-                <li><strong>IF 지지선 이탈 시:</strong> 리스크 관리 라인 작동, 계좌별 비중 조절 검토.</li>
+                <li><strong>IF 주요 저항선 강하게 돌파 시:</strong> 상승 추세 강화로 판단, 홀딩 유지하며 계좌별 목표가 상향.</li>
+                <li><strong>IF 지지선 하향 이탈 시:</strong> 리스크 관리 라인 작동, 계좌별 비중 조절 검토.</li>
+                <li><strong>IF 실적 서프라이즈 (HBM 공급 확정 등):</strong> 보유 물량 유지 후 차기 저항선까지 추종.</li>
+                <li><strong>IF 실적 미스 / 가이던스 악화:</strong> 단기 변동성 확대 시 분할 매도 대응.</li>
             </ul>
         </div>
 
@@ -172,17 +252,72 @@ def main():
             <ul>
                 <li><strong>오늘 한 거래:</strong> 없음 (Holding 유지)</li>
                 <li><strong>안 한 이유:</strong> 대형 실적 이벤트 대기 중이므로 사전 뇌동매매 자제.</li>
+                <li><strong>사후 점검:</strong> 두 계좌의 평단가를 명확히 파악하고 이벤트 결과 확인 후 대응하는 것이 최선.</li>
             </ul>
         </div>
 
         <div class="action-banner">
-            🎯 오늘의 매매 판단: <span>"지금은 추격 매수가 아닌, 실적 발표를 앞둔 '관찰'의 자리입니다."</span>
+            🎯 오늘의 매매 판단: <span id="banner-text">"실적 발표를 앞둔 '관찰'의 자리입니다."</span>
         </div>
 
         <footer>
             본 보고서는 매일 GitHub Actions을 통해 자동으로 데이터가 업데이트됩니다.
         </footer>
     </div>
+
+    <script>
+        const currentPrice = {current_price};
+
+        function calculate() {{
+            const p1 = parseFloat(document.getElementById('price1').value) || 0;
+            const q1 = parseFloat(document.getElementById('qty1').value) || 0;
+            
+            const p2 = parseFloat(document.getElementById('price2').value) || 0;
+            const q2 = parseFloat(document.getElementById('qty2').value) || 0;
+
+            const totalQty = q1 + q2;
+            const invest1 = p1 * q1;
+            const invest2 = p2 * q2;
+            const totalInvest = invest1 + invest2;
+
+            const eval1 = currentPrice * q1;
+            const eval2 = currentPrice * q2;
+            const totalEval = eval1 + eval2;
+
+            const profit1 = eval1 - invest1;
+            const profit2 = eval2 - invest2;
+            const totalProfit = totalEval - totalInvest;
+            
+            const totalReturn = totalInvest > 0 ? (totalProfit / totalInvest) * 100 : 0;
+
+            // 총 수량 및 투자금 표시
+            document.getElementById('total-qty').innerText = totalQty + "주";
+            document.getElementById('total-invest').innerText = totalInvest.toLocaleString();
+
+            // 총 손익 표시 (+ / - 색상 및 기호 적용)
+            const profitElem = document.getElementById('total-profit');
+            if (totalProfit >= 0) {{
+                profitElem.className = "profit-plus";
+                profitElem.innerText = `+${{totalProfit.toLocaleString()}}원 (+${{totalReturn.toFixed(2)}}%)`;
+            }} else {{
+                profitElem.className = "profit-minus";
+                profitElem.innerText = `${{totalProfit.toLocaleString()}}원 (${{totalReturn.toFixed(2)}}%)`;
+            }}
+
+            // 평단가 기반 맞춤 조언 자동 생성
+            const avgPriceAll = totalQty > 0 ? totalInvest / totalQty : 0;
+            let advice = "";
+            if (currentPrice >= avgPriceAll) {{
+                advice = `현재가(${{currentPrice.toLocaleString()}}원)가 총 평균단가(${{Math.round(avgPriceAll).toLocaleString()}}원) 위인 <strong>수익권</strong>입니다. 실적 발표 전까지 여유 있게 홀딩이 유리합니다.`;
+            }} else {{
+                advice = `현재가(${{currentPrice.toLocaleString()}}원)가 총 평균단가(${{Math.round(avgPriceAll).toLocaleString()}}원) 아래인 <strong>손실권</strong>입니다. 10/29 실적 컨퍼런스콜 가이던스를 확인하며 대응하세요.`;
+            }}
+            document.getElementById('dynamic-advice').innerHTML = advice;
+        }}
+
+        // 페이지 로드 시 자동 계산 실행
+        window.onload = calculate;
+    </script>
 </body>
 </html>
 """
