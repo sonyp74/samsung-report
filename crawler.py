@@ -20,7 +20,7 @@ def send_telegram(msg):
 def main():
     today_str = datetime.datetime.now().strftime("%Y년 %m월 %d일")
     
-    # 네이버 증권 크롤링 (실패 시 기본값 방어 코드 포함)
+    # 네이버 증권 크롤링
     try:
         url = "https://finance.naver.com/item/main.naver?code=005930"
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -44,40 +44,148 @@ def main():
     )
     send_telegram(telegram_text)
     
-    # 웹 대시보드 (index.html) 생성
+    # 웹 대시보드 (두 계좌 평단가가 명시된 HTML)
     html_content = f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>삼성전자 투자 분석 보고서</title>
+    <title>삼성전자 일일 투자 분석 보고서</title>
     <style>
-        body {{ font-family: -apple-system, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; color: #212529; }}
-        .container {{ max-width: 800px; margin: 0 auto; background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }}
-        h1 {{ color: #0a58ca; font-size: 22px; margin-top: 0; }}
-        .box {{ background: #e7f1ff; padding: 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }}
+        :root {{
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --primary: #0a58ca;
+            --secondary: #495057;
+            --accent-up: #d93025;
+            --text-main: #212529;
+            --border-color: #e9ecef;
+        }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }}
+        .container {{ max-width: 900px; margin: 0 auto; }}
+        header {{ background: linear-gradient(135deg, #0a58ca, #042b69); color: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }}
+        header h1 {{ margin: 0 0 8px 0; font-size: 24px; }}
+        header .date-info {{ font-size: 14px; opacity: 0.85; }}
+        
+        .portfolio-summary {{
+            background: #e7f1ff;
+            border: 1px solid #b6d4fe;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }}
+        .portfolio-item {{ font-size: 14px; color: #084298; }}
+        .portfolio-item strong {{ font-size: 16px; font-weight: bold; color: #052c65; display: block; margin-top: 2px; }}
+
+        .summary-cards {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }}
+        .card {{ background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }}
+        .card-title {{ font-size: 13px; color: var(--secondary); margin-bottom: 8px; font-weight: 600; }}
+        .card-value {{ font-size: 22px; font-weight: bold; }}
+        .card-change {{ font-size: 13px; margin-top: 4px; color: var(--accent-up); }}
+
+        .section-title {{ font-size: 18px; font-weight: bold; margin: 28px 0 12px 0; display: flex; align-items: center; gap: 8px; color: #111; }}
+        .section-title::before {{ content: ""; display: inline-block; width: 4px; height: 18px; background-color: var(--primary); border-radius: 2px; }}
+        
+        .content-box {{ background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 16px; line-height: 1.6; }}
+        .content-box ul {{ margin: 0; padding-left: 20px; }}
+        .content-box li {{ margin-bottom: 8px; }}
+
+        .conclusion-box {{ border-left: 5px solid var(--primary); font-size: 15px; font-weight: 500; }}
+        .action-banner {{ background: linear-gradient(135deg, #212529, #343a40); color: #fff; padding: 20px; border-radius: 12px; text-align: center; font-size: 18px; font-weight: bold; margin-top: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }}
+        .action-banner span {{ color: #ffda6a; }}
+        footer {{ text-align: center; padding: 24px 0; color: var(--secondary); font-size: 12px; }}
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>삼성전자 데일리 투자 분석 보고서 📊</h1>
-        <p>최종 업데이트: {today_str}</p>
-        <div class="box">
-            <strong>📦 보유 현황:</strong> 총 168주 (약 4,000만원)<br>
-            • 계좌 1 평단가: <strong>{AVG_PRICE_A}</strong><br>
-            • 계좌 2 평단가: <strong>{AVG_PRICE_B}</strong>
+        <header>
+            <h1>삼성전자 데일리 투자 분석 보고서 📊</h1>
+            <div class="date-info">업데이트: {today_str} 기준</div>
+        </header>
+
+        <!-- 두 계좌 평단가 반영 영역 -->
+        <div class="portfolio-summary">
+            <div class="portfolio-item">보유 수량: <strong>168주 (약 4,000만원)</strong></div>
+            <div class="portfolio-item">계좌 1 평단가: <strong>{AVG_PRICE_A}</strong></div>
+            <div class="portfolio-item">계좌 2 평단가: <strong>{AVG_PRICE_B}</strong></div>
+            <div class="portfolio-item">현재 상태: <strong style="color:var(--primary);">계좌별 분할 관리 중</strong></div>
         </div>
-        <div class="box">
-            <strong>📈 실시간 시세:</strong> 현재가 <strong>{price}원</strong> (전일 대비: {diff})
+
+        <div class="summary-cards">
+            <div class="card">
+                <div class="card-title">종목명 / 코드</div>
+                <div class="card-value">삼성전자</div>
+                <div class="card-change">005930</div>
+            </div>
+            <div class="card">
+                <div class="card-title">오늘 종가</div>
+                <div class="card-value">{price}원</div>
+                <div class="card-change">전일 대비: {diff}</div>
+            </div>
+            <div class="card">
+                <div class="card-title">핵심 촉매</div>
+                <div class="card-value" style="font-size:18px;">3Q 실적발표</div>
+                <div class="card-change">컨퍼런스콜 진행 예정</div>
+            </div>
         </div>
-        <div class="box">
-            <strong>🎯 오늘의 결론 & 액션 플랜:</strong><br>
-            • HBM3E 모멘텀 유지 속 3분기 실적 컨퍼런스콜(10/29) 대기.<br>
-            • 무리한 추격 매수 자제 및 실적 발표 전까지 '관찰' 유지.
+
+        <div class="section-title">1. 오늘의 결론</div>
+        <div class="content-box conclusion-box">
+            <ul>
+                <li><strong>투자 가설 유지:</strong> HBM3E 공급 가시성 및 메모리 업황 회복 기대감으로 중장기 모멘텀 유효.</li>
+                <li><strong>계좌별 전략 관리:</strong> 계좌 1({AVG_PRICE_A}) 및 계좌 2({AVG_PRICE_B})의 평단 차이를 고려한 구간별 대응.</li>
+                <li><strong>실적 이벤트 대기:</strong> 컨퍼런스콜 발표 전까지 무리한 추격 매수보다는 보유 관망 전략이 유효.</li>
+            </ul>
         </div>
+
+        <div class="section-title">2. 오늘 뭐가 바뀌었나</div>
+        <div class="content-box">
+            <ul>
+                <li><strong>투자 가설:</strong> HBM 턴어라운드 모멘텀 유효, 단기 변동성에도 중장기 재평가 라인 유지.</li>
+                <li><strong>수급 동향:</strong> 외국인 순매수세 및 기관 저가 매수 유입 지속, 개인 매물 출회.</li>
+                <li><strong>메모리 가격:</strong> DRAM/NAND 고정거래가격 안정세 유지, 서버용 HBM 수요 호조.</li>
+                <li><strong>기술적 위치:</strong> 주요 마디대 안착 시도 중, 상방 저항대 관망.</li>
+                <li><strong>내 감정 상태:</strong> 계좌별 평단가를 고려한 냉정한 리스크 관리 및 심리적 안정 유지.</li>
+            </ul>
+        </div>
+
+        <div class="section-title">3. 뉴스 & 촉매</div>
+        <div class="content-box">
+            <ul>
+                <li><strong>3분기 실적 컨퍼런스콜:</strong> HBM3E 퀄테스트 진행 상황 및 4분기/내년 가이던스 발표 집중.</li>
+            </ul>
+        </div>
+
+        <div class="section-title">4. If-Then 액션 플랜</div>
+        <div class="content-box">
+            <ul>
+                <li><strong>IF 주요 저항선 돌파 시:</strong> 상승 추세 강화로 판단, 홀딩 유지하며 목표가 상향.</li>
+                <li><strong>IF 지지선 이탈 시:</strong> 리스크 관리 라인 작동, 계좌별 비중 조절 검토.</li>
+            </ul>
+        </div>
+
+        <div class="section-title">5. 매매일지</div>
+        <div class="content-box">
+            <ul>
+                <li><strong>오늘 한 거래:</strong> 없음 (Holding 유지)</li>
+                <li><strong>안 한 이유:</strong> 대형 실적 이벤트 대기 중이므로 사전 뇌동매매 자제.</li>
+            </ul>
+        </div>
+
+        <div class="action-banner">
+            🎯 오늘의 매매 판단: <span>"지금은 추격 매수가 아닌, 실적 발표를 앞둔 '관찰'의 자리입니다."</span>
+        </div>
+
+        <footer>
+            본 보고서는 매일 GitHub Actions을 통해 자동으로 데이터가 업데이트됩니다.
+        </footer>
     </div>
 </body>
-</html>"""
+</html>
+"""
 
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_content)
