@@ -22,7 +22,7 @@ def send_telegram(msg):
 def main():
     today_str = datetime.datetime.now().strftime("%Y년 %m월 %d일")
     
-    # 네이버 증권 크롤링 (현재가 추출)
+    # 네이버 증권 크롤링 (현재가 및 등락률 추출)
     try:
         url = "https://finance.naver.com/item/main.naver?code=005930"
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -30,14 +30,21 @@ def main():
         soup = BeautifulSoup(html, 'html.parser')
         price_str = soup.select_one('.no_today .blind').text.replace(',', '')
         current_price = int(price_str)
-        diff = soup.select_one('.no_exday .blind').text
+        
+        # 등락률 텍스트 추출 (예: +0.62%)
+        exday_tag = soup.select_one('.no_exday')
+        change_rate_text = "0.00%"
+        if exday_tag:
+            blind_tags = exday_tag.select('.blind')
+            if len(blind_tags) >= 2:
+                change_rate_text = blind_tags[1].text
     except Exception:
         current_price = 242000
-        diff = "0"
+        change_rate_text = "0.00%"
 
     telegram_text = (
         f"📊 *[삼성전자 데일리 리포트]* ({today_str})\n\n"
-        f"💰 *현재가:* {current_price:,}원 (전일비: {diff})\n"
+        f"💰 *현재가:* {current_price:,}원 (등락률: {change_rate_text})\n"
         f"📦 *계좌별 상세 테이블 갱신 완료*\n"
         f"🌐 [대시보드에서 확인하기](https://sonyp74.github.io/samsung-report/)"
     )
@@ -61,7 +68,7 @@ def main():
             --border-color: #dee2e6;
         }}
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }}
-        .container {{ max-width: 1050px; margin: 0 auto; }}
+        .container {{ max-width: 1100px; margin: 0 auto; }}
         header {{ background: linear-gradient(135deg, #0a58ca, #042b69); color: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }}
         header h1 {{ margin: 0 0 8px 0; font-size: 24px; }}
         header .date-info {{ font-size: 14px; opacity: 0.85; }}
@@ -84,7 +91,7 @@ def main():
             font-size: 14px;
         }}
         th, td {{
-            padding: 12px 8px;
+            padding: 12px 6px;
             border-bottom: 1px solid var(--border-color);
         }}
         th {{
@@ -93,7 +100,7 @@ def main():
             font-weight: 600;
         }}
         input[type="number"] {{
-            width: 95px;
+            width: 85px;
             padding: 6px;
             text-align: right;
             border: 1px solid #ced4da;
@@ -117,6 +124,16 @@ def main():
         }}
         .profit-plus {{ color: var(--accent-up); font-weight: bold; }}
         .profit-minus {{ color: var(--accent-down); font-weight: bold; }}
+
+        /* 차트 영역 스타일 */
+        .chart-container {{
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }}
 
         .summary-cards {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }}
         .card {{ background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }}
@@ -148,7 +165,7 @@ def main():
             <div class="date-info">업데이트: {today_str} 기준 (현재가: <strong id="header-price">{current_price:,}</strong>원)</div>
         </header>
 
-        <!-- 계좌별 입력 및 테이블 영역 -->
+        <!-- 계좌별 입력 및 테이블 영역 (종목명, 매입가, 평가손익, 수익률, 보유수량, 현재가 대비 등락률, 매입금액, 평가금액 순) -->
         <div class="table-container">
             <div class="table-title">
                 <span>💼 계좌별 상세 현황 및 손익 계산 (매입가 / 수량 수정 가능)</span>
@@ -162,6 +179,7 @@ def main():
                         <th>평가손익</th>
                         <th>수익률</th>
                         <th>보유수량</th>
+                        <th>등락률</th>
                         <th>매입금액</th>
                         <th>평가금액</th>
                     </tr>
@@ -174,6 +192,7 @@ def main():
                         <td id="profit1">-</td>
                         <td id="return1">-</td>
                         <td><input type="number" id="qty1" value="{DEFAULT_QTY_A}"></td>
+                        <td id="change-rate1">{change_rate_text}</td>
                         <td id="invest1">-</td>
                         <td id="eval1">-</td>
                     </tr>
@@ -184,6 +203,7 @@ def main():
                         <td id="profit2">-</td>
                         <td id="return2">-</td>
                         <td><input type="number" id="qty2" value="{DEFAULT_QTY_B}"></td>
+                        <td id="change-rate2">{change_rate_text}</td>
                         <td id="invest2">-</td>
                         <td id="eval2">-</td>
                     </tr>
@@ -194,11 +214,38 @@ def main():
                         <td id="total-profit">-</td>
                         <td id="total-return">-</td>
                         <td id="total-qty">-</td>
+                        <td>-</td>
                         <td id="total-invest">-</td>
                         <td id="total-eval">-</td>
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- 삼성전자 일봉 차트 영역 -->
+        <div class="chart-container">
+            <div class="table-title" style="margin-bottom: 10px;">📈 삼성전자 (005930) 일봉 차트</div>
+            <div class="tradingview-widget-container" style="height:450px;width:100%;">
+                <div id="tradingview_chart" style="height:100%;width:100%;"></div>
+                <script type="text/javascript" src="https://s.tradingview.com/tv.js"></script>
+                <script type="text/javascript">
+                new TradingView.widget(
+                {{
+                    "width": "100%",
+                    "height": "100%",
+                    "symbol": "KRX:005930",
+                    "interval": "D",
+                    "timezone": "Asia/Seoul",
+                    "theme": "light",
+                    "style": "1",
+                    "locale": "kr",
+                    "toolbar_bg": "#f1f3f6",
+                    "enable_publishing": false,
+                    "allow_symbol_change": false,
+                    "container_id": "tradingview_chart"
+                }});
+                </script>
+            </div>
         </div>
 
         <div class="summary-cards">
@@ -210,7 +257,7 @@ def main():
             <div class="card">
                 <div class="card-title">오늘 종가</div>
                 <div class="card-value">{current_price:,}원</div>
-                <div class="card-change">전일 대비: {diff}</div>
+                <div class="card-change">등락률: {change_rate_text}</div>
             </div>
             <div class="card">
                 <div class="card-title">핵심 촉매</div>
@@ -278,6 +325,7 @@ def main():
 
     <script>
         const currentPrice = {current_price};
+        const changeRateStr = "{change_rate_text}";
 
         function calculate() {{
             // 계좌 1
@@ -290,6 +338,7 @@ def main():
 
             document.getElementById('invest1').innerText = invest1.toLocaleString();
             document.getElementById('eval1').innerText = eval1.toLocaleString();
+            document.getElementById('change-rate1').innerText = changeRateStr;
             
             const prof1Elem = document.getElementById('profit1');
             if (profit1 >= 0) {{
@@ -314,6 +363,7 @@ def main():
 
             document.getElementById('invest2').innerText = invest2.toLocaleString();
             document.getElementById('eval2').innerText = eval2.toLocaleString();
+            document.getElementById('change-rate2').innerText = changeRateStr;
             
             const prof2Elem = document.getElementById('profit2');
             if (profit2 >= 0) {{
