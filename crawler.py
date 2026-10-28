@@ -60,8 +60,4 @@ def fetch_samsung_data():
 • 3분기 실적 컨퍼런스콜: HBM3E 퀄테스트 및 가이던스 집중
 
 📌 *오늘의 판단*
-"지금은 추격 매수가 아닌, 실적 발표를 앞둔 '관찰'의 자리입니다."
-
-🌐 [웹 대시보드에서 전체 보기](https://sonyp74.github.io/samsung-report/)
-"""
-    send_telegram_message(telegram
+"지금은 추
