@@ -1,7 +1,27 @@
 import urllib.request
+import urllib.parse
 import json
 import datetime
 from bs4 import BeautifulSoup
+
+# 텔레그램 봇 설정 정보
+TELEGRAM_TOKEN = "9077507634:AAG8zS8EDOniS8-iP4pRK99XmIrnAmVpj5I"
+CHAT_ID = "8955893121"
+
+def send_telegram_message(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": CHAT_ID,
+        "text": message,
+        "parse_mode": "Markdown"
+    }
+    data = urllib.parse.urlencode(payload).encode('utf-8')
+    req = urllib.request.Request(url, data=data, method='POST')
+    try:
+        with urllib.request.urlopen(req) as response:
+            print("텔레그램 알림 전송 완료!")
+    except Exception as e:
+        print(f"텔레그램 전송 실패: {e}")
 
 def fetch_samsung_data():
     today_str = datetime.datetime.now().strftime("%Y년 %m월 %d일")
@@ -20,7 +40,28 @@ def fetch_samsung_data():
     diff_tag = soup.select_one('.no_exday .blind')
     diff = diff_tag.text if diff_tag else "0"
     
-    # HTML template 생성
+    # 텔레그램으로 보낼 핵심 요약 메시지 구성
+    telegram_text = f"""📊 *[삼성전자 데일리 투자 리포트]* ({today_str})
+
+💰 *현재가:* {price}원 (전일 대비: {diff})
+📦 *보유현황:* 168주 / 평단 238,000원 (약 4,000만 원)
+
+🎯 *1. 오늘의 결론*
+• 투자 가설 유지: HBM3E 공급 가시성 및 업황 회복 기대감 지속
+• 실적 이벤트 대기: 3분기 실적 컨퍼런스콜 전까지 보유 관망 유지
+
+📰 *3. 주요 촉매*
+• 3분기 실적 컨퍼런스콜 (10/29): HBM3E 퀄테스트 및 4분기 가이던스 집중
+
+📌 *오늘의 판단*
+"지금은 추격 매수가 아닌, 실적 발표를 앞둔 '관찰'의 자리입니다."
+
+🌐 [웹 대시보드에서 전체 보기](https://sonyp74.github.io/samsung-report/)
+"""
+    # 텔레그램 알림 전송 실행
+    send_telegram_message(telegram_text)
+    
+    # HTML template 생성 (웹 대시보드용)
     html_content = f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -34,7 +75,6 @@ def fetch_samsung_data():
             --primary: #0a58ca;
             --secondary: #495057;
             --accent-up: #d93025;
-            --accent-down: #1266f1;
             --text-main: #212529;
             --border-color: #e9ecef;
         }}
@@ -43,55 +83,26 @@ def fetch_samsung_data():
         header {{ background: linear-gradient(135deg, #0a58ca, #042b69); color: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }}
         header h1 {{ margin: 0 0 8px 0; font-size: 24px; }}
         header .date-info {{ font-size: 14px; opacity: 0.85; }}
-        
-        .portfolio-summary {{
-            background: #e7f1ff;
-            border: 1px solid #b6d4fe;
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }}
+        .portfolio-summary {{ background: #e7f1ff; border: 1px solid #b6d4fe; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }}
         .portfolio-item {{ font-size: 14px; color: #084298; }}
         .portfolio-item strong {{ font-size: 16px; font-weight: bold; color: #052c65; }}
-
         .summary-cards {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }}
         .card {{ background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }}
         .card-title {{ font-size: 13px; color: var(--secondary); margin-bottom: 8px; font-weight: 600; }}
         .card-value {{ font-size: 22px; font-weight: bold; }}
         .card-change {{ font-size: 13px; margin-top: 4px; color: var(--accent-up); }}
-
         .section-title {{ font-size: 18px; font-weight: bold; margin: 28px 0 12px 0; display: flex; align-items: center; gap: 8px; color: #111; }}
         .section-title::before {{ content: ""; display: inline-block; width: 4px; height: 18px; background-color: var(--primary); border-radius: 2px; }}
-        
         .content-box {{ background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 16px; line-height: 1.6; }}
         .content-box ul {{ margin: 0; padding-left: 20px; }}
         .content-box li {{ margin-bottom: 8px; }}
-
-        .conclusion-box {{ background: #ffffff; border-left: 5px solid var(--primary); font-size: 15px; font-weight: 500; }}
-        
-        .action-banner {{
-            background: linear-gradient(135deg, #212529, #343a40);
-            color: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }}
+        .conclusion-box {{ border-left: 5px solid var(--primary); font-size: 15px; font-weight: 500; }}
+        .action-banner {{ background: linear-gradient(135deg, #212529, #343a40); color: #fff; padding: 20px; border-radius: 12px; text-align: center; font-size: 18px; font-weight: bold; margin-top: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }}
         .action-banner span {{ color: #ffda6a; }}
-
         .badge {{ display: inline-block; padding: 4px 8px; font-size: 12px; font-weight: 600; border-radius: 4px; margin-right: 6px; }}
         .badge-warning {{ background-color: #fff3cd; color: #856404; }}
         .badge-info {{ background-color: #cce5ff; color: #004085; }}
         .badge-danger {{ background-color: #f8d7da; color: #721c24; }}
-
         footer {{ text-align: center; padding: 24px 0; color: var(--secondary); font-size: 12px; }}
     </style>
 </head>
@@ -101,16 +112,12 @@ def fetch_samsung_data():
             <h1>삼성전자 데일리 투자 분석 보고서 📊</h1>
             <div class="date-info">업데이트: {today_str} 기준</div>
         </header>
-
-        <!-- 내 보유 현황 -->
         <div class="portfolio-summary">
             <div class="portfolio-item">보유 수량: <strong>168주</strong></div>
             <div class="portfolio-item">평단가: <strong>238,000원</strong></div>
             <div class="portfolio-item">투자금: <strong>약 4,000만원</strong></div>
             <div class="portfolio-item">현재 상태: <strong style="color:var(--accent-up);">수익권 유지 (가설 유효)</strong></div>
         </div>
-
-        <!-- 실시간 시세 요약 -->
         <div class="summary-cards">
             <div class="card">
                 <div class="card-title">종목명 / 코드</div>
@@ -128,18 +135,14 @@ def fetch_samsung_data():
                 <div class="card-change">10월 29일 진행</div>
             </div>
         </div>
-
-        <!-- 1. 오늘의 결론 3줄 -->
         <div class="section-title">1. 오늘의 결론</div>
         <div class="content-box conclusion-box">
             <ul>
                 <li><strong>투자 가설 유지:</strong> HBM3E 공급 가시성 및 메모리 업황 회복 기대감으로 상승 기조 지속.</li>
                 <li><strong>평단가 대비 우위:</strong> 현재가({price}원)는 내 평단가(238,000원) 위에서 안정적인 지지 흐름 형성 중.</li>
-                <li><strong>실적 이벤트 대기:</strong> 내일 3Q 컨퍼런스콜 발표 전까지 무리한 신규 진입보다는 보유 전략이 유효.</li>
+                <li><strong>실적 이벤트 대기:</strong> 컨퍼런스콜 발표 전까지 무리한 신규 진입보다는 보유 전략이 유효.</li>
             </ul>
         </div>
-
-        <!-- 2. 오늘 뭐가 바뀌었나 -->
         <div class="section-title">2. 오늘 뭐가 바뀌었나</div>
         <div class="content-box">
             <ul>
@@ -150,8 +153,6 @@ def fetch_samsung_data():
                 <li><strong>내 감정 상태:</strong> 평단가 대비 수익권으로 심리적 안정 유지, 내일 실적 발표 앞두고 침착하게 대응 준비 완료.</li>
             </ul>
         </div>
-
-        <!-- 3. 뉴스 & 촉매 -->
         <div class="section-title">3. 뉴스 & 촉매 (주가 직접 영향)</div>
         <div class="content-box">
             <ul>
@@ -160,8 +161,6 @@ def fetch_samsung_data():
                 <li><span class="badge badge-danger">지정학적</span> <strong>중동 전쟁 변수:</strong> 유가 변동성에 따른 IT 전방 수요 영향 모니터링 필요.</li>
             </ul>
         </div>
-
-        <!-- 4. If-Then 액션 -->
         <div class="section-title">4. If-Then 액션 플랜</div>
         <div class="content-box">
             <ul>
@@ -171,8 +170,6 @@ def fetch_samsung_data():
                 <li><strong>IF 실적 미스 / 가이던스 악화:</strong> 단기 변동성 확대 시 분할 매도 고려.</li>
             </ul>
         </div>
-
-        <!-- 5. 매매일지 -->
         <div class="section-title">5. 매매일지</div>
         <div class="content-box">
             <ul>
@@ -181,12 +178,9 @@ def fetch_samsung_data():
                 <li><strong>사후 점검:</strong> 평단가(238,000원) 대비 안전지대에 위치하여 이벤트 결과 확인 후 대응하는 것이 리스크 관리상 최선.</li>
             </ul>
         </div>
-
-        <!-- 단정 한 줄 -->
         <div class="action-banner">
             🎯 오늘의 매매 판단: <span>"지금은 추격 매수가 아닌, 실적 발표를 앞둔 '관찰'의 자리입니다."</span>
         </div>
-
         <footer>
             본 보고서는 매일 GitHub Actions을 통해 자동으로 데이터가 업데이트됩니다.
         </footer>
