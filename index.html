@@ -13,14 +13,15 @@
             --accent-up: #d93025;
             --accent-down: #1a73e8;
             --text-main: #212529;
-            --border-color: #dee2e6;
+            --border-color: #e9ecef;
         }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
-        .container { max-width: 1100px; margin: 0 auto; }
+        .container { max-width: 1000px; margin: 0 auto; }
         header { background: linear-gradient(135deg, #0a58ca, #042b69); color: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         header h1 { margin: 0 0 8px 0; font-size: 24px; }
         header .date-info { font-size: 14px; opacity: 0.85; }
         
+        /* 영웅문 HTS 스타일 계좌 등록/수익률 계산 테이블 */
         .table-container {
             background: #ffffff;
             border: 1px solid var(--border-color);
@@ -30,49 +31,18 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             overflow-x: auto;
         }
-        .table-title { font-size: 16px; font-weight: bold; color: #084298; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: center;
-            font-size: 14px;
-        }
-        th, td {
-            padding: 12px 6px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        th {
-            background-color: #f8f9fa;
-            color: #495057;
-            font-weight: 600;
-        }
-        input[type="number"] {
-            width: 85px;
-            padding: 6px;
-            text-align: right;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .calc-btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        .table-title { font-size: 16px; font-weight: bold; color: #084298; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; }
+        th, td { padding: 10px 6px; border-bottom: 1px solid var(--border-color); }
+        th { background-color: #f8f9fa; color: #495057; font-weight: 600; }
+        input[type="number"] { width: 85px; padding: 5px; text-align: right; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; }
+        .calc-btn { background-color: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .calc-btn:hover { background-color: #084298; }
-
-        .total-row {
-            font-weight: bold;
-            background-color: #e7f1ff;
-        }
+        .total-row { font-weight: bold; background-color: #e7f1ff; }
         .profit-plus { color: var(--accent-up); font-weight: bold; }
         .profit-minus { color: var(--accent-down); font-weight: bold; }
 
+        /* 트레이딩뷰 일봉 차트 영역 */
         .chart-container {
             background: #ffffff;
             border: 1px solid var(--border-color);
@@ -82,22 +52,24 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        /* 영웅문 스타일 HTS 요약 카드 */
-        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
         .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
         .card-title { font-size: 13px; color: var(--secondary); margin-bottom: 8px; font-weight: 600; }
         .card-value { font-size: 22px; font-weight: bold; }
+        .card-change { font-size: 13px; margin-top: 4px; }
 
         .section-title { font-size: 18px; font-weight: bold; margin: 28px 0 12px 0; display: flex; align-items: center; gap: 8px; color: #111; }
         .section-title::before { content: ""; display: inline-block; width: 4px; height: 18px; background-color: var(--primary); border-radius: 2px; }
-        
         .content-box { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--border-color); margin-bottom: 16px; line-height: 1.6; }
         .content-box ul { margin: 0; padding-left: 20px; }
         .content-box li { margin-bottom: 8px; }
-
         .conclusion-box { border-left: 5px solid var(--primary); font-size: 15px; font-weight: 500; }
         .action-banner { background: linear-gradient(135deg, #212529, #343a40); color: #fff; padding: 20px; border-radius: 12px; text-align: center; font-size: 18px; font-weight: bold; margin-top: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .action-banner span { color: #ffda6a; }
+        .badge { display: inline-block; padding: 4px 8px; font-size: 12px; font-weight: 600; border-radius: 4px; margin-right: 6px; }
+        .badge-warning { background-color: #fff3cd; color: #856404; }
+        .badge-info { background-color: #cce5ff; color: #004085; }
+        .badge-danger { background-color: #f8d7da; color: #721c24; }
         footer { text-align: center; padding: 24px 0; color: var(--secondary); font-size: 12px; }
     </style>
 </head>
@@ -108,10 +80,10 @@
             <div class="date-info">업데이트: 2026년 10월 28일 기준</div>
         </header>
 
-        <!-- 계좌별 입력 및 테이블 영역 -->
+        <!-- 계좌등록 및 영웅문 HTS 스타일 손익 계산 테이블 -->
         <div class="table-container">
             <div class="table-title">
-                <span>💼 계좌별 상세 현황 및 손익 계산 (수정 시 브라우저에 값 자동 저장)</span>
+                <span>💼 보유 계좌등록 현황 (매입가 / 수량 수정 시 자동으로 값 저장)</span>
                 <button class="calc-btn" onclick="calculate()">반영 및 계산</button>
             </div>
             <table>
@@ -162,59 +134,55 @@
             </table>
         </div>
 
-        <!-- 삼성전자 일봉 차트 영역 -->
+        <!-- 삼성전자 일봉 차트 -->
         <div class="chart-container">
             <div class="table-title" style="margin-bottom: 12px;">📈 삼성전자 (005930) 일봉 차트</div>
-            <div style="height:480px; width:100%;">
+            <div style="height:460px; width:100%;">
                 <iframe src="https://s.tradingview.com/widgetembed/?symbol=KRX%3A005930&interval=D&symboledit=0&saveimage=0&toolbarbg=f1f3f6&studies=%5B%5D&theme=light&style=1&timezone=Asia%2FSeoul&studies_overrides=%7B%7D&overrides=%7B%7D&enabled_features=%5B%5D&disabled_features=%5B%5D&locale=kr" 
                         style="width: 100%; height: 100%; border: none; border-radius: 8px;"></iframe>
             </div>
         </div>
 
-        <!-- 영웅문 스타일 3가지 지표 요약 카드 (현재가, 대비, 등락률) -->
+        <!-- 영웅문 스타일 지표 요약 카드 (현재가, 전일대비, 등락률) -->
         <div class="summary-cards">
             <div class="card">
                 <div class="card-title">현재가</div>
                 <div class="card-value" style="color: #0a58ca;">242,000원</div>
             </div>
             <div class="card">
-                <div class="card-title">전일 대비 (대비)</div>
+                <div class="card-title">전일 대비</div>
                 <div class="card-value" style="color: var(--accent-down);">0원</div>
             </div>
             <div class="card">
                 <div class="card-title">등락률</div>
                 <div class="card-value" style="color: var(--accent-down);">0.00%</div>
             </div>
-            <div class="card">
-                <div class="card-title">핵심 촉매</div>
-                <div class="card-value" style="font-size:16px; color:#333;">3Q 실적발표</div>
-            </div>
         </div>
 
-        <div class="section-title">1. 오늘의 결론 및 맞춤 조언</div>
+        <div class="section-title">1. 오늘의 결론</div>
         <div class="content-box conclusion-box">
             <ul>
-                <li><strong>투자 가설 유지:</strong> HBM3E 공급 가시성 및 메모리 업황 회복 기대감으로 중장기 모멘텀 유효.</li>
-                <li><strong id="advice-status-text">계좌별 상태 분석:</strong> <span id="dynamic-advice">값을 입력하고 [반영 및 계산] 버튼을 누르면 맞춤 조언이 생성됩니다.</span></li>
-                <li><strong>실적 이벤트 대기:</strong> 컨퍼런스콜 발표 전까지 무리한 추격 매수보다는 보유 관망 전략이 유효.</li>
+                <li><strong>투자 가설 유지:</strong> HBM3E 공급 가시성 및 메모리 업황 회복 기대감으로 상승 기조 지속.</li>
+                <li><strong id="advice-status-text">평단가 대비 상태:</strong> <span id="dynamic-advice">값을 입력하고 [반영 및 계산]을 누르면 맞춤 조언이 업데이트됩니다.</span></li>
+                <li><strong>실적 이벤트 대기:</strong> 컨퍼런스콜 발표 전까지 무리한 신규 진입보다는 보유 전략이 유효.</li>
             </ul>
         </div>
 
-        <div class="section-title">2. 오늘 뭐가 바뀌었나 (수급/기술적 위치)</div>
+        <div class="section-title">2. 오늘 뭐가 바뀌었나</div>
         <div class="content-box">
             <ul>
                 <li><strong>투자 가설:</strong> HBM 턴어라운드 모멘텀 유효, 단기 변동성에도 중장기 재평가 라인 유지.</li>
-                <li><strong>수급 동향:</strong> 외국인 순매수세 및 기관 저가 매수 유입 지속, 개인 매물 출회.</li>
-                <li><strong>메모리 가격:</strong> DRAM/NAND 고정거래가격 안정세 유지, 서버용 HBM 수요 호조.</li>
-                <li><strong>기술적 위치:</strong> 주요 마디대 안착 시도 중, 상방 저항대 관망.</li>
-                <li><strong>내 감정 상태:</strong> 계좌별 평단가를 고려한 냉정한 리스크 관리 및 심리적 안정 유지.</li>
+                <li><strong>수급 동향:</strong> 외국인 순매수세 지속 및 기관의 저가 매수 유입, 개인은 수익 실현 매물 출회.</li>
+                <li><strong>메모리 가격:</strong> DRAM/NAND 고정거래가격 안정세 유지, 서버용 HBM 수요 호조 지속.</li>
+                <li><strong>기술적 위치:</strong> 240,000원대 단기 마디대 안착 시도 중, 상방 250,000원 저항대 접근.</li>
+                <li><strong>내 감정 상태:</strong> 계좌별 평단가 대비 수익률을 점검하며 심리적 안정 유지, 실적 발표 대응 준비 완료.</li>
             </ul>
         </div>
 
         <div class="section-title">3. 뉴스 & 촉매 (주가 직접 영향)</div>
         <div class="content-box">
             <ul>
-                <li><strong>3분기 실적 컨퍼런스콜:</strong> HBM3E 퀄테스트 진행 상황 및 4분기/내년 가이던스 발표가 핵심 촉매.</li>
+                <li><span class="badge badge-info">실적/IR</span> <strong>3분기 실적 컨퍼런스콜(10/29):</strong> HBM3E 퀄테스트 진행 상황 및 4분기/내년 가이던스 발표가 핵심 촉매.</li>
             </ul>
         </div>
 
@@ -235,7 +203,7 @@
         </div>
 
         <div class="action-banner">
-            🎯 오늘의 매매 판단: <span id="banner-text">"실적 발표를 앞둔 '관찰'의 자리입니다."</span>
+            🎯 오늘의 매매 판단: <span>"지금은 추격 매수가 아닌, 실적 발표를 앞둔 '관찰'의 자리입니다."</span>
         </div>
 
         <footer>
@@ -260,11 +228,13 @@
             const p2 = parseFloat(document.getElementById('price2').value) || 0;
             const q2 = parseFloat(document.getElementById('qty2').value) || 0;
 
+            // 로컬스토리지 저장 (새로고침 시 유지)
             localStorage.setItem('sec_price1', p1);
             localStorage.setItem('sec_qty1', q1);
             localStorage.setItem('sec_price2', p2);
             localStorage.setItem('sec_qty2', q2);
 
+            // 계좌 1 계산
             const invest1 = p1 * q1;
             const eval1 = currentPrice * q1;
             const profit1 = eval1 - invest1;
@@ -282,6 +252,7 @@
             ret1Elem.className = return1 >= 0 ? "profit-plus" : "profit-minus";
             ret1Elem.innerText = return1.toFixed(2) + "%";
 
+            // 계좌 2 계산
             const invest2 = p2 * q2;
             const eval2 = currentPrice * q2;
             const profit2 = eval2 - invest2;
@@ -299,6 +270,7 @@
             ret2Elem.className = return2 >= 0 ? "profit-plus" : "profit-minus";
             ret2Elem.innerText = return2.toFixed(2) + "%";
 
+            // 전체 합계 계산
             const totalQty = q1 + q2;
             const totalInvest = invest1 + invest2;
             const totalEval = eval1 + eval2;
@@ -317,6 +289,7 @@
             totRetElem.className = totalReturn >= 0 ? "profit-plus" : "profit-minus";
             totRetElem.innerText = totalReturn.toFixed(2) + "%";
 
+            // 평단가 기반 조언 생성
             const avgPriceAll = totalQty > 0 ? totalInvest / totalQty : 0;
             let advice = "";
             if (currentPrice >= avgPriceAll) {
