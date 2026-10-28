@@ -6,8 +6,10 @@ from bs4 import BeautifulSoup
 # 설정 정보
 TELEGRAM_TOKEN = "9077507634:AAG8zS8EDOniS8-iP4pRK99XmIrnAmVpj5I"
 CHAT_ID = "8955893121"
-AVG_PRICE_A = 320638
-AVG_PRICE_B = 279399
+DEFAULT_PRICE_A = 320638
+DEFAULT_QTY_A = 84
+DEFAULT_PRICE_B = 279399
+DEFAULT_QTY_B = 84
 
 def send_telegram(msg):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -33,16 +35,14 @@ def main():
         current_price = 242000
         diff = "0"
 
-    # 텔레그램 알림 메시지
     telegram_text = (
         f"📊 *[삼성전자 데일리 리포트]* ({today_str})\n\n"
         f"💰 *현재가:* {current_price:,}원 (전일비: {diff})\n"
-        f"📦 *계좌 관리 리포트 갱신 완료*\n"
-        f"🌐 [대시보드에서 계좌별 손익 확인하기](https://sonyp74.github.io/samsung-report/)"
+        f"📦 *계좌별 상세 테이블 갱신 완료*\n"
+        f"🌐 [대시보드에서 확인하기](https://sonyp74.github.io/samsung-report/)"
     )
     send_telegram(telegram_text)
     
-    # 웹 대시보드 HTML (인터랙티브 계좌 입력 및 실시간 손익/조언 반영 기능 포함)
     html_content = f"""<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -58,65 +58,62 @@ def main():
             --accent-up: #d93025;
             --accent-down: #1a73e8;
             --text-main: #212529;
-            --border-color: #e9ecef;
+            --border-color: #dee2e6;
         }}
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }}
-        .container {{ max-width: 900px; margin: 0 auto; }}
+        .container {{ max-width: 1050px; margin: 0 auto; }}
         header {{ background: linear-gradient(135deg, #0a58ca, #042b69); color: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }}
         header h1 {{ margin: 0 0 8px 0; font-size: 24px; }}
         header .date-info {{ font-size: 14px; opacity: 0.85; }}
         
-        /* 계좌 입력 카드 스타일 */
-        .account-container {{
-            background: #e7f1ff;
-            border: 1px solid #b6d4fe;
+        .table-container {{
+            background: #ffffff;
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow-x: auto;
         }}
-        .account-title {{ font-size: 16px; font-weight: bold; color: #084298; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }}
-        .account-row {{
-            display: grid;
-            grid-template-columns: 1fr 1fr 100px;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 10px;
-            background: #fff;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #cfe2ff;
-        }}
-        .input-group label {{ font-size: 12px; color: #555; display: block; margin-bottom: 4px; }}
-        .input-group input {{
+        .table-title {{ font-size: 16px; font-weight: bold; color: #084298; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }}
+        
+        table {{
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            border-collapse: collapse;
+            text-align: center;
             font-size: 14px;
-            box-sizing: border-box;
+        }}
+        th, td {{
+            padding: 12px 8px;
+            border-bottom: 1px solid var(--border-color);
+        }}
+        th {{
+            background-color: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+        }}
+        input[type="number"] {{
+            width: 95px;
+            padding: 6px;
+            text-align: right;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
         }}
         .calc-btn {{
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 16px;
+            padding: 8px 16px;
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
-            height: 100%;
         }}
         .calc-btn:hover {{ background-color: #084298; }}
-        
-        .account-result {{
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px dashed #b6d4fe;
-            font-size: 14px;
-            color: #052c65;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
+
+        .total-row {{
+            font-weight: bold;
+            background-color: #e7f1ff;
         }}
         .profit-plus {{ color: var(--accent-up); font-weight: bold; }}
         .profit-minus {{ color: var(--accent-down); font-weight: bold; }}
@@ -148,46 +145,60 @@ def main():
     <div class="container">
         <header>
             <h1>삼성전자 데일리 투자 분석 보고서 📊</h1>
-            <div class="date-info">업데이트: {today_str} 기준</div>
+            <div class="date-info">업데이트: {today_str} 기준 (현재가: <strong id="header-price">{current_price:,}</strong>원)</div>
         </header>
 
-        <!-- 계좌별 입력 및 실시간 손익 계산 영역 -->
-        <div class="account-container">
-            <div class="account-title">
-                <span>💼 보유 계좌별 매입가 및 수량 설정</span>
-                <span style="font-size: 13px; font-weight: normal; color: #0a58ca;">현재가: <strong id="curr-price-display">{current_price:,}</strong>원</span>
+        <!-- 계좌별 입력 및 테이블 영역 -->
+        <div class="table-container">
+            <div class="table-title">
+                <span>💼 계좌별 상세 현황 및 손익 계산 (매입가 / 수량 수정 가능)</span>
+                <button class="calc-btn" onclick="calculate()">반영 및 계산</button>
             </div>
-            
-            <!-- 계좌 1 -->
-            <div class="account-row">
-                <div class="input-group">
-                    <label>계좌 1 매입가 (원)</label>
-                    <input type="number" id="price1" value="{AVG_PRICE_A}">
-                </div>
-                <div class="input-group">
-                    <label>계좌 1 보유수량 (주)</label>
-                    <input type="number" id="qty1" value="84">
-                </div>
-                <button class="calc-btn" onclick="calculate()">반영</button>
-            </div>
-
-            <!-- 계좌 2 -->
-            <div class="account-row">
-                <div class="input-group">
-                    <label>계좌 2 매입가 (원)</label>
-                    <input type="number" id="price2" value="{AVG_PRICE_B}">
-                </div>
-                <div class="input-group">
-                    <label>계좌 2 보유수량 (주)</label>
-                    <input type="number" id="qty2" value="84">
-                </div>
-                <button class="calc-btn" onclick="calculate()">반영</button>
-            </div>
-
-            <div class="account-result" id="result-box">
-                <div>총 보유: <strong id="total-qty">168주</strong> | 총 투자금: <strong id="total-invest">-</strong>원</div>
-                <div>총 평가손익: <span id="total-profit">-</span></div>
-            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>종목명</th>
+                        <th>매입가</th>
+                        <th>평가손익</th>
+                        <th>수익률</th>
+                        <th>보유수량</th>
+                        <th>매입금액</th>
+                        <th>평가금액</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 계좌 1 -->
+                    <tr>
+                        <td>삼성전자 (계좌1)</td>
+                        <td><input type="number" id="price1" value="{DEFAULT_PRICE_A}"></td>
+                        <td id="profit1">-</td>
+                        <td id="return1">-</td>
+                        <td><input type="number" id="qty1" value="{DEFAULT_QTY_A}"></td>
+                        <td id="invest1">-</td>
+                        <td id="eval1">-</td>
+                    </tr>
+                    <!-- 계좌 2 -->
+                    <tr>
+                        <td>삼성전자 (계좌2)</td>
+                        <td><input type="number" id="price2" value="{DEFAULT_PRICE_B}"></td>
+                        <td id="profit2">-</td>
+                        <td id="return2">-</td>
+                        <td><input type="number" id="qty2" value="{DEFAULT_QTY_B}"></td>
+                        <td id="invest2">-</td>
+                        <td id="eval2">-</td>
+                    </tr>
+                    <!-- 합계 -->
+                    <tr class="total-row">
+                        <td>합계 / 총평</td>
+                        <td>-</td>
+                        <td id="total-profit">-</td>
+                        <td id="total-return">-</td>
+                        <td id="total-qty">-</td>
+                        <td id="total-invest">-</td>
+                        <td id="total-eval">-</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
         <div class="summary-cards">
@@ -212,7 +223,7 @@ def main():
         <div class="content-box conclusion-box">
             <ul>
                 <li><strong>투자 가설 유지:</strong> HBM3E 공급 가시성 및 메모리 업황 회복 기대감으로 중장기 모멘텀 유효.</li>
-                <li><strong id="advice-status-text">계좌별 상태 분석:</strong> <span id="dynamic-advice">값을 입력하고 [반영] 버튼을 누르면 평단가 기준 맞춤 조언이 생성됩니다.</span></li>
+                <li><strong id="advice-status-text">계좌별 상태 분석:</strong> <span id="dynamic-advice">값을 입력하고 [반영 및 계산] 버튼을 누르면 맞춤 조언이 생성됩니다.</span></li>
                 <li><strong>실적 이벤트 대기:</strong> 컨퍼런스콜 발표 전까지 무리한 추격 매수보다는 보유 관망 전략이 유효.</li>
             </ul>
         </div>
@@ -269,48 +280,85 @@ def main():
         const currentPrice = {current_price};
 
         function calculate() {{
+            // 계좌 1
             const p1 = parseFloat(document.getElementById('price1').value) || 0;
             const q1 = parseFloat(document.getElementById('qty1').value) || 0;
-            
-            const p2 = parseFloat(document.getElementById('price2').value) || 0;
-            const q2 = parseFloat(document.getElementById('qty2').value) || 0;
-
-            const totalQty = q1 + q2;
             const invest1 = p1 * q1;
-            const invest2 = p2 * q2;
-            const totalInvest = invest1 + invest2;
-
             const eval1 = currentPrice * q1;
-            const eval2 = currentPrice * q2;
-            const totalEval = eval1 + eval2;
-
             const profit1 = eval1 - invest1;
-            const profit2 = eval2 - invest2;
-            const totalProfit = totalEval - totalInvest;
+            const return1 = invest1 > 0 ? (profit1 / invest1) * 100 : 0;
+
+            document.getElementById('invest1').innerText = invest1.toLocaleString();
+            document.getElementById('eval1').innerText = eval1.toLocaleString();
             
-            const totalReturn = totalInvest > 0 ? (totalProfit / totalInvest) * 100 : 0;
-
-            // 총 수량 및 투자금 표시
-            document.getElementById('total-qty').innerText = totalQty + "주";
-            document.getElementById('total-invest').innerText = totalInvest.toLocaleString();
-
-            // 총 손익 표시 (+ / - 색상 및 기호 적용)
-            const profitElem = document.getElementById('total-profit');
-            if (totalProfit >= 0) {{
-                profitElem.className = "profit-plus";
-                profitElem.innerText = `+${{totalProfit.toLocaleString()}}원 (+${{totalReturn.toFixed(2)}}%)`;
+            const prof1Elem = document.getElementById('profit1');
+            if (profit1 >= 0) {{
+                prof1Elem.className = "profit-plus";
+                prof1Elem.innerText = "+" + profit1.toLocaleString();
             }} else {{
-                profitElem.className = "profit-minus";
-                profitElem.innerText = `${{totalProfit.toLocaleString()}}원 (${{totalReturn.toFixed(2)}}%)`;
+                prof1Elem.className = "profit-minus";
+                prof1Elem.innerText = profit1.toLocaleString();
             }}
 
-            // 평단가 기반 맞춤 조언 자동 생성
+            const ret1Elem = document.getElementById('return1');
+            ret1Elem.className = return1 >= 0 ? "profit-plus" : "profit-minus";
+            ret1Elem.innerText = return1.toFixed(2) + "%";
+
+            // 계좌 2
+            const p2 = parseFloat(document.getElementById('price2').value) || 0;
+            const q2 = parseFloat(document.getElementById('qty2').value) || 0;
+            const invest2 = p2 * q2;
+            const eval2 = currentPrice * q2;
+            const profit2 = eval2 - invest2;
+            const return2 = invest2 > 0 ? (profit2 / invest2) * 100 : 0;
+
+            document.getElementById('invest2').innerText = invest2.toLocaleString();
+            document.getElementById('eval2').innerText = eval2.toLocaleString();
+            
+            const prof2Elem = document.getElementById('profit2');
+            if (profit2 >= 0) {{
+                prof2Elem.className = "profit-plus";
+                prof2Elem.innerText = "+" + profit2.toLocaleString();
+            }} else {{
+                prof2Elem.className = "profit-minus";
+                prof2Elem.innerText = profit2.toLocaleString();
+            }}
+
+            const ret2Elem = document.getElementById('return2');
+            ret2Elem.className = return2 >= 0 ? "profit-plus" : "profit-minus";
+            ret2Elem.innerText = return2.toFixed(2) + "%";
+
+            // 합계
+            const totalQty = q1 + q2;
+            const totalInvest = invest1 + invest2;
+            const totalEval = eval1 + eval2;
+            const totalProfit = totalEval - totalInvest;
+            const totalReturn = totalInvest > 0 ? (totalProfit / totalInvest) * 100 : 0;
+
+            document.getElementById('total-qty').innerText = totalQty.toLocaleString() + "주";
+            document.getElementById('total-invest').innerText = totalInvest.toLocaleString();
+            document.getElementById('total-eval').innerText = totalEval.toLocaleString();
+
+            const totProfElem = document.getElementById('total-profit');
+            if (totalProfit >= 0) {{
+                totProfElem.className = "profit-plus";
+                totProfElem.innerText = "+" + totalProfit.toLocaleString();
+            }} else {{
+                totProfElem.className = "profit-minus";
+                totProfElem.innerText = totalProfit.toLocaleString();
+            }}
+
+            const totRetElem = document.getElementById('total-return');
+            totRetElem.className = totalReturn >= 0 ? "profit-plus" : "profit-minus";
+            totRetElem.innerText = totalReturn.toFixed(2) + "%";
+
+            // 맞춤 조언 자동 갱신
             const avgPriceAll = totalQty > 0 ? totalInvest / totalQty : 0;
             let advice = "";
             if (currentPrice >= avgPriceAll) {{
-                advice = `현재가(${{currentPrice.toLocaleString()}}원)가 총 평균단가(${{Math.round(avgPriceAll).toLocaleString()}}원) 위인 <strong>수익권</strong>입니다. 실적 발표 전까지 여유 있게 홀딩이 유리합니다.`;
+                advice = `현재가(<strong>${{currentPrice.toLocaleString()}}원</strong>)가 전체 평균단가(<strong>${{Math.round(avgPriceAll).toLocaleString()}}원</strong>) 위인 <strong>수익권</strong>입니다. 실적 발표 전까지 여유 있게 홀딩이 유리합니다.`;
             }} else {{
-                advice = `현재가(${{currentPrice.toLocaleString()}}원)가 총 평균단가(${{Math.round(avgPriceAll).toLocaleString()}}원) 아래인 <strong>손실권</strong>입니다. 10/29 실적 컨퍼런스콜 가이던스를 확인하며 대응하세요.`;
+                advice = `현재가(<strong>${{currentPrice.toLocaleString()}}원</strong>)가 전체 평균단가(<strong>${{Math.round(avgPriceAll).toLocaleString()}}원</strong>) 아래인 <strong>손실권</strong>입니다. 10/29 실적 컨퍼런스콜 가이던스를 확인하며 대응하세요.`;
             }}
             document.getElementById('dynamic-advice').innerHTML = advice;
         }}
