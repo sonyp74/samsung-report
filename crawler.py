@@ -108,7 +108,7 @@ def main():
 
         <!-- 두 계좌 평단가 반영 영역 -->
         <div class="portfolio-summary">
-            <div class="portfolio-item">보유 수량: <strong>168주 (약 4,000만원)</strong></div>
+            <div class="portfolio-item">보유 수량: <strong>150주 (약 4,000만원)</strong></div>
             <div class="portfolio-item">계좌 1 평단가: <strong>{AVG_PRICE_A}</strong></div>
             <div class="portfolio-item">계좌 2 평단가: <strong>{AVG_PRICE_B}</strong></div>
             <div class="portfolio-item">현재 상태: <strong style="color:var(--primary);">계좌별 분할 관리 중</strong></div>
