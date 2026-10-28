@@ -73,7 +73,6 @@
         .profit-plus { color: var(--accent-up); font-weight: bold; }
         .profit-minus { color: var(--accent-down); font-weight: bold; }
 
-        /* 차트 영역 스타일 */
         .chart-container {
             background: #ffffff;
             border: 1px solid var(--border-color);
@@ -83,11 +82,11 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        /* 영웅문 스타일 HTS 요약 카드 */
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
         .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
         .card-title { font-size: 13px; color: var(--secondary); margin-bottom: 8px; font-weight: 600; }
         .card-value { font-size: 22px; font-weight: bold; }
-        .card-change { font-size: 13px; margin-top: 4px; color: var(--accent-up); }
 
         .section-title { font-size: 18px; font-weight: bold; margin: 28px 0 12px 0; display: flex; align-items: center; gap: 8px; color: #111; }
         .section-title::before { content: ""; display: inline-block; width: 4px; height: 18px; background-color: var(--primary); border-radius: 2px; }
@@ -99,10 +98,6 @@
         .conclusion-box { border-left: 5px solid var(--primary); font-size: 15px; font-weight: 500; }
         .action-banner { background: linear-gradient(135deg, #212529, #343a40); color: #fff; padding: 20px; border-radius: 12px; text-align: center; font-size: 18px; font-weight: bold; margin-top: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .action-banner span { color: #ffda6a; }
-        .badge { display: inline-block; padding: 4px 8px; font-size: 12px; font-weight: 600; border-radius: 4px; margin-right: 6px; }
-        .badge-warning { background-color: #fff3cd; color: #856404; }
-        .badge-info { background-color: #cce5ff; color: #004085; }
-        .badge-danger { background-color: #f8d7da; color: #721c24; }
         footer { text-align: center; padding: 24px 0; color: var(--secondary); font-size: 12px; }
     </style>
 </head>
@@ -110,13 +105,13 @@
     <div class="container">
         <header>
             <h1>삼성전자 데일리 투자 분석 보고서 📊</h1>
-            <div class="date-info">업데이트: 2026년 10월 28일 기준 (현재가: <strong id="header-price">242,000</strong>원)</div>
+            <div class="date-info">업데이트: 2026년 10월 28일 기준</div>
         </header>
 
-        <!-- 계좌별 입력 및 테이블 영역 (종목명, 매입가, 평가손익, 수익률, 보유수량, 현재가 대비 등락률, 매입금액, 평가금액 순) -->
+        <!-- 계좌별 입력 및 테이블 영역 -->
         <div class="table-container">
             <div class="table-title">
-                <span>💼 계좌별 상세 현황 및 손익 계산 (매입가 / 수량 수정 가능)</span>
+                <span>💼 계좌별 상세 현황 및 손익 계산 (수정 시 브라우저에 값 자동 저장)</span>
                 <button class="calc-btn" onclick="calculate()">반영 및 계산</button>
             </div>
             <table>
@@ -133,7 +128,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- 계좌 1 -->
                     <tr>
                         <td>삼성전자 (계좌1)</td>
                         <td><input type="number" id="price1" value="320638"></td>
@@ -144,7 +138,6 @@
                         <td id="invest1">-</td>
                         <td id="eval1">-</td>
                     </tr>
-                    <!-- 계좌 2 -->
                     <tr>
                         <td>삼성전자 (계좌2)</td>
                         <td><input type="number" id="price2" value="279399"></td>
@@ -155,7 +148,6 @@
                         <td id="invest2">-</td>
                         <td id="eval2">-</td>
                     </tr>
-                    <!-- 합계 -->
                     <tr class="total-row">
                         <td>합계 / 총평</td>
                         <td>-</td>
@@ -172,45 +164,30 @@
 
         <!-- 삼성전자 일봉 차트 영역 -->
         <div class="chart-container">
-            <div class="table-title" style="margin-bottom: 10px;">📈 삼성전자 (005930) 일봉 차트</div>
-            <div class="tradingview-widget-container" style="height:450px;width:100%;">
-                <div id="tradingview_chart" style="height:100%;width:100%;"></div>
-                <script type="text/javascript" src="https://s.tradingview.com/tv.js"></script>
-                <script type="text/javascript">
-                new TradingView.widget(
-                {
-                    "width": "100%",
-                    "height": "100%",
-                    "symbol": "KRX:005930",
-                    "interval": "D",
-                    "timezone": "Asia/Seoul",
-                    "theme": "light",
-                    "style": "1",
-                    "locale": "kr",
-                    "toolbar_bg": "#f1f3f6",
-                    "enable_publishing": false,
-                    "allow_symbol_change": false,
-                    "container_id": "tradingview_chart"
-                });
-                </script>
+            <div class="table-title" style="margin-bottom: 12px;">📈 삼성전자 (005930) 일봉 차트</div>
+            <div style="height:480px; width:100%;">
+                <iframe src="https://s.tradingview.com/widgetembed/?symbol=KRX%3A005930&interval=D&symboledit=0&saveimage=0&toolbarbg=f1f3f6&studies=%5B%5D&theme=light&style=1&timezone=Asia%2FSeoul&studies_overrides=%7B%7D&overrides=%7B%7D&enabled_features=%5B%5D&disabled_features=%5B%5D&locale=kr" 
+                        style="width: 100%; height: 100%; border: none; border-radius: 8px;"></iframe>
             </div>
         </div>
 
+        <!-- 영웅문 스타일 3가지 지표 요약 카드 (현재가, 대비, 등락률) -->
         <div class="summary-cards">
             <div class="card">
-                <div class="card-title">종목명 / 코드</div>
-                <div class="card-value">삼성전자</div>
-                <div class="card-change">005930</div>
+                <div class="card-title">현재가</div>
+                <div class="card-value" style="color: #0a58ca;">242,000원</div>
             </div>
             <div class="card">
-                <div class="card-title">오늘 종가</div>
-                <div class="card-value">242,000원</div>
-                <div class="card-change">등락률: 0.00%</div>
+                <div class="card-title">전일 대비 (대비)</div>
+                <div class="card-value" style="color: var(--accent-down);">0원</div>
+            </div>
+            <div class="card">
+                <div class="card-title">등락률</div>
+                <div class="card-value" style="color: var(--accent-down);">0.00%</div>
             </div>
             <div class="card">
                 <div class="card-title">핵심 촉매</div>
-                <div class="card-value" style="font-size:18px;">3Q 실적발표</div>
-                <div class="card-change">컨퍼런스콜 진행 예정</div>
+                <div class="card-value" style="font-size:16px; color:#333;">3Q 실적발표</div>
             </div>
         </div>
 
@@ -237,9 +214,7 @@
         <div class="section-title">3. 뉴스 & 촉매 (주가 직접 영향)</div>
         <div class="content-box">
             <ul>
-                <li><span class="badge badge-info">실적/IR</span> <strong>3분기 실적 컨퍼런스콜:</strong> HBM3E 퀄테스트 진행 상황 및 4분기/내년 가이던스 발표가 핵심 촉매.</li>
-                <li><span class="badge badge-warning">미국 정책</span> <strong>미국 반도체 정책 변수:</strong> 보조금 지급 일정 및 대중 규제 여파 모니터링.</li>
-                <li><span class="badge badge-danger">지정학적</span> <strong>대외 불확실성:</strong> 매크로 환경 및 유가 변동성에 따른 전방 IT 수요 점검.</li>
+                <li><strong>3분기 실적 컨퍼런스콜:</strong> HBM3E 퀄테스트 진행 상황 및 4분기/내년 가이던스 발표가 핵심 촉매.</li>
             </ul>
         </div>
 
@@ -248,8 +223,6 @@
             <ul>
                 <li><strong>IF 주요 저항선 강하게 돌파 시:</strong> 상승 추세 강화로 판단, 홀딩 유지하며 계좌별 목표가 상향.</li>
                 <li><strong>IF 지지선 하향 이탈 시:</strong> 리스크 관리 라인 작동, 계좌별 비중 조절 검토.</li>
-                <li><strong>IF 실적 서프라이즈 (HBM 공급 확정 등):</strong> 보유 물량 유지 후 차기 저항선까지 추종.</li>
-                <li><strong>IF 실적 미스 / 가이던스 악화:</strong> 단기 변동성 확대 시 분할 매도 대응.</li>
             </ul>
         </div>
 
@@ -258,7 +231,6 @@
             <ul>
                 <li><strong>오늘 한 거래:</strong> 없음 (Holding 유지)</li>
                 <li><strong>안 한 이유:</strong> 대형 실적 이벤트 대기 중이므로 사전 뇌동매매 자제.</li>
-                <li><strong>사후 점검:</strong> 두 계좌의 평단가를 명확히 파악하고 이벤트 결과 확인 후 대응하는 것이 최선.</li>
             </ul>
         </div>
 
@@ -275,10 +247,24 @@
         const currentPrice = 242000;
         const changeRateStr = "0.00%";
 
+        function loadSavedData() {
+            if (localStorage.getItem('sec_price1')) document.getElementById('price1').value = localStorage.getItem('sec_price1');
+            if (localStorage.getItem('sec_qty1')) document.getElementById('qty1').value = localStorage.getItem('sec_qty1');
+            if (localStorage.getItem('sec_price2')) document.getElementById('price2').value = localStorage.getItem('sec_price2');
+            if (localStorage.getItem('sec_qty2')) document.getElementById('qty2').value = localStorage.getItem('sec_qty2');
+        }
+
         function calculate() {
-            // 계좌 1
             const p1 = parseFloat(document.getElementById('price1').value) || 0;
             const q1 = parseFloat(document.getElementById('qty1').value) || 0;
+            const p2 = parseFloat(document.getElementById('price2').value) || 0;
+            const q2 = parseFloat(document.getElementById('qty2').value) || 0;
+
+            localStorage.setItem('sec_price1', p1);
+            localStorage.setItem('sec_qty1', q1);
+            localStorage.setItem('sec_price2', p2);
+            localStorage.setItem('sec_qty2', q2);
+
             const invest1 = p1 * q1;
             const eval1 = currentPrice * q1;
             const profit1 = eval1 - invest1;
@@ -289,21 +275,13 @@
             document.getElementById('change-rate1').innerText = changeRateStr;
             
             const prof1Elem = document.getElementById('profit1');
-            if (profit1 >= 0) {
-                prof1Elem.className = "profit-plus";
-                prof1Elem.innerText = "+" + profit1.toLocaleString();
-            } else {
-                prof1Elem.className = "profit-minus";
-                prof1Elem.innerText = profit1.toLocaleString();
-            }
+            prof1Elem.className = profit1 >= 0 ? "profit-plus" : "profit-minus";
+            prof1Elem.innerText = (profit1 >= 0 ? "+" : "") + profit1.toLocaleString();
 
             const ret1Elem = document.getElementById('return1');
             ret1Elem.className = return1 >= 0 ? "profit-plus" : "profit-minus";
             ret1Elem.innerText = return1.toFixed(2) + "%";
 
-            // 계좌 2
-            const p2 = parseFloat(document.getElementById('price2').value) || 0;
-            const q2 = parseFloat(document.getElementById('qty2').value) || 0;
             const invest2 = p2 * q2;
             const eval2 = currentPrice * q2;
             const profit2 = eval2 - invest2;
@@ -314,19 +292,13 @@
             document.getElementById('change-rate2').innerText = changeRateStr;
             
             const prof2Elem = document.getElementById('profit2');
-            if (profit2 >= 0) {
-                prof2Elem.className = "profit-plus";
-                prof2Elem.innerText = "+" + profit2.toLocaleString();
-            } else {
-                prof2Elem.className = "profit-minus";
-                prof2Elem.innerText = profit2.toLocaleString();
-            }
+            prof2Elem.className = profit2 >= 0 ? "profit-plus" : "profit-minus";
+            prof2Elem.innerText = (profit2 >= 0 ? "+" : "") + profit2.toLocaleString();
 
             const ret2Elem = document.getElementById('return2');
             ret2Elem.className = return2 >= 0 ? "profit-plus" : "profit-minus";
             ret2Elem.innerText = return2.toFixed(2) + "%";
 
-            // 합계
             const totalQty = q1 + q2;
             const totalInvest = invest1 + invest2;
             const totalEval = eval1 + eval2;
@@ -338,31 +310,27 @@
             document.getElementById('total-eval').innerText = totalEval.toLocaleString();
 
             const totProfElem = document.getElementById('total-profit');
-            if (totalProfit >= 0) {
-                totProfElem.className = "profit-plus";
-                totProfElem.innerText = "+" + totalProfit.toLocaleString();
-            } else {
-                totProfElem.className = "profit-minus";
-                totProfElem.innerText = totalProfit.toLocaleString();
-            }
+            totProfElem.className = totalProfit >= 0 ? "profit-plus" : "profit-minus";
+            totProfElem.innerText = (totalProfit >= 0 ? "+" : "") + totalProfit.toLocaleString();
 
             const totRetElem = document.getElementById('total-return');
             totRetElem.className = totalReturn >= 0 ? "profit-plus" : "profit-minus";
             totRetElem.innerText = totalReturn.toFixed(2) + "%";
 
-            // 맞춤 조언 자동 갱신
             const avgPriceAll = totalQty > 0 ? totalInvest / totalQty : 0;
             let advice = "";
             if (currentPrice >= avgPriceAll) {
                 advice = `현재가(<strong>${currentPrice.toLocaleString()}원</strong>)가 전체 평균단가(<strong>${Math.round(avgPriceAll).toLocaleString()}원</strong>) 위인 <strong>수익권</strong>입니다. 실적 발표 전까지 여유 있게 홀딩이 유리합니다.`;
             } else {
-                advice = `현재가(<strong>${currentPrice.toLocaleString()}원</strong>)가 전체 평균단가(<strong>${Math.round(avgPriceAll).toLocaleString()}원</strong>) 아래인 <strong>손실권</strong>입니다. 10/29 실적 컨퍼런스콜 가이던스를 확인하며 대응하세요.`;
+                advice = `현재가(<strong>${currentPrice.toLocaleString()}원</strong>)가 전체 평균단가(<strong>${Math.round(avgPriceAll).toLocaleString()}원</strong>) 아래인 <strong>손실권</strong>입니다. 실적 컨퍼런스콜 가이던스를 확인하며 대응하세요.`;
             }
             document.getElementById('dynamic-advice').innerHTML = advice;
         }
 
-        // 페이지 로드 시 자동 계산 실행
-        window.onload = calculate;
+        window.onload = function() {
+            loadSavedData();
+            calculate();
+        };
     </script>
 </body>
 </html>
