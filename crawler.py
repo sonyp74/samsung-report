@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 TELEGRAM_TOKEN = "9077507634:AAG8zS8EDOniS8-iP4pRK99XmIrnAmVpj5I"
 CHAT_ID = "8955893121"
 
-# 계좌별 평단가 설정 (필요시 이 숫자만 수정하시면 됩니다)
+# 계좌별 평단가 설정
 AVG_PRICE_A = "320,638원"
 AVG_PRICE_B = "279,399원"
 
@@ -64,25 +64,4 @@ def fetch_samsung_data():
 
 🌐 [웹 대시보드에서 전체 보기](https://sonyp74.github.io/samsung-report/)
 """
-    # 텔레그램 알림 전송
-    send_telegram_message(telegram_text)
-    
-    # HTML template 생성
-    html_content = f"""<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>삼성전자 일일 투자 분석 보고서</title>
-    <style>
-        :root {{
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --primary: #0a58ca;
-            --secondary: #495057;
-            --accent-up: #d93025;
-            --text-main: #212529;
-            --border-color: #e9ecef;
-        }}
-        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }}
-        .container {{ max-width: 900px; margin
+    send_telegram_message(telegram
